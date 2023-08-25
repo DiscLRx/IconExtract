@@ -5,22 +5,22 @@ using System.Drawing.Imaging;
 namespace IconExtract {
         public class Program {
 
-        private static List<Bitmap> bitmapList { get; } = new();
+        private static readonly List<Bitmap> BitmapList = new();
 
-        [DllImport("User32.dll")]
+        [DllImport("User32.dll", CharSet = CharSet.Unicode)]
         private static extern int PrivateExtractIcons(
-            string lpszFile, int nIconIndex, int cxIcon, int cyIcon, IntPtr[] phicon, int[] piconid, int nIcons, int flags);
+            string lpszFile, int nIconIndex, int cxIcon, int cyIcon, nint[]? phicon, int[]? piconid, int nIcons, int flags);
 
         private static void GetIcons(string path) {
             var iconCount = PrivateExtractIcons(path, 0, 0, 0, null, null, 0, 0);
-            IntPtr[]? hIcons = new IntPtr[iconCount];
+            var hIcons = new nint[iconCount];
             int[] ids = new int[iconCount];
-            PrivateExtractIcons(path, 0, 256, 256, hIcons, ids, iconCount, 0);
+            _ = PrivateExtractIcons(path, 0, 256, 256, hIcons, ids, iconCount, 0);
 
             foreach (var hIcon in hIcons) {
                 var icon = Icon.FromHandle(hIcon);
                 var bitmap = icon.ToBitmap();
-                bitmapList.Add(bitmap);
+                BitmapList.Add(bitmap);
             }
 
         }
@@ -48,7 +48,7 @@ namespace IconExtract {
             }
 
             int fileIndex = 1;
-            bitmapList.ForEach(bm => {
+            BitmapList.ForEach(bm => {
                 bm.Save($"{Path.Combine(outputPath, fileIndex.ToString())}.png", ImageFormat.Png);
                 fileIndex++;
             });
