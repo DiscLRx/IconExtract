@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "IconExtract": {
+      "commandName": "Project",
+      "commandLineArgs": " -i .\\devenv.exe  -o D:\\Projects\\IconExtract\\IconExtract\\bin\\Debug\\net6.0\\icon"
+    }
+  }
+}
