@@ -2,6 +2,7 @@
     public class ExtractHandler {
 
         private readonly Configuration _configuration;
+        private string? _iconDirectory;
 
         public ExtractHandler(Configuration configuration) {
             _configuration = configuration;
@@ -26,11 +27,11 @@
         }
 
         private async Task ConvertFormat() {
-
-            var files = Directory.GetFiles(Path.Combine(_configuration.TemporaryOutputDirectory, ".rsrc", "ICON"));
+            GetIconDir(Path.Combine(_configuration.TemporaryOutputDirectory, ".rsrc"));
+            var files = Directory.GetFiles(_iconDirectory);
             foreach (var file in files) {
                 var fileNameWithouExtension = Path.GetFileNameWithoutExtension(file);
-                var newPath = Path.Combine(_configuration.TemporaryOutputDirectory, ".rsrc", "ICON", fileNameWithouExtension);
+                var newPath = Path.Combine(_iconDirectory, fileNameWithouExtension);
                 File.Move(file, newPath);
                 await DoConvert(newPath);
                 File.Delete(newPath);
@@ -52,10 +53,23 @@
 
         private async Task<int> OutputToDirectory() {
             return await Task.Run(() => {
-                Directory.Move(Path.Combine(_configuration.TemporaryOutputDirectory, ".rsrc", "ICON"), _configuration.OutputPath);
+                Directory.Move(_iconDirectory, _configuration.OutputPath);
                 Directory.Delete(_configuration.TemporaryOutputDirectory, true);
                 return Directory.GetFiles(_configuration.OutputPath).Length;
             });
+        }
+
+        private void GetIconDir(string dirPath) {
+            var dirs = Directory.GetDirectories(dirPath);
+            foreach (var dir in dirs) {
+                var info = new DirectoryInfo(dir);
+                if ("ICON".Equals(info.Name)) {
+                    _iconDirectory = info.FullName;
+                    return;
+                } else {
+                    GetIconDir(dir);
+                }
+            }
         }
 
         private async Task<int> OutputToCompressedFile() {
